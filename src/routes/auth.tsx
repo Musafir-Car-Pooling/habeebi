@@ -8,7 +8,7 @@ import { Logo } from "@/components/app/Logo";
 import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (s: Record<string, unknown>): { mode?: "login" | "signup" } => ({
+  validateSearch: (s: Record<string, unknown>): { mode?: "login" | "signup" | undefined } => ({
     mode: s["mode"] === "signup" ? "signup" : s["mode"] === "login" ? "login" : undefined,
   }),
   head: () => ({
