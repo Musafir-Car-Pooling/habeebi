@@ -66,7 +66,7 @@ function AuthPage() {
         });
         if (error) throw error;
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email: f.email.trim(), password: f.password });
+        const { error } = await supabase.auth.signInWithPassword({ email: f.email.trim().toLowerCase(), password: f.password });
         if (error) throw error;
       }
       qc.removeQueries({ queryKey: ["me"] });
@@ -127,8 +127,8 @@ function AuthPage() {
             )}
           </>
         )}
-        <Input className="h-12 rounded-xl" placeholder={t("email")} type="email" maxLength={255} required value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
-        <div className="relative"><Input className="h-12 rounded-xl pe-12" placeholder={t("password")} type={showPwd ? "text" : "password"} required minLength={6} maxLength={128} autoComplete={mode === "login" ? "current-password" : "new-password"} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /><Button variant="ghost" size="icon" type="button" onClick={() => setShowPwd((v) => !v)} aria-label={t(showPwd ? "hidePassword" : "showPassword")} className="absolute end-2 top-1/2 -translate-y-1/2 text-muted-foreground">{showPwd ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</Button></div>
+        <Input className="h-12 rounded-xl" placeholder={t("email")} type="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} maxLength={255} required value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
+        <div className="relative"><Input className="h-12 rounded-xl pe-12" placeholder={t("password")} type={showPwd ? "text" : "password"} autoCapitalize="none" autoCorrect="off" spellCheck={false} required minLength={6} maxLength={128} autoComplete={mode === "login" ? "current-password" : "new-password"} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /><Button variant="ghost" size="icon" type="button" onClick={() => setShowPwd((v) => !v)} aria-label={t(showPwd ? "hidePassword" : "showPassword")} className="absolute end-2 top-1/2 -translate-y-1/2 text-muted-foreground">{showPwd ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</Button></div>
         <Button type="submit" disabled={busy} className="h-14 w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground disabled:opacity-60">
           {busy ? <LoadingBubbles compact /> : mode === "login" ? t("login") : t("createAccount")}
         </Button>
