@@ -2,10 +2,11 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check } from "lucide-react";
+import { Check, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { categoriesQuery } from "@/lib/auth";
-import { LanguagePicker, useT } from "@/lib/i18n";
+import { useT } from "@/lib/i18n";
+import { ServiceIcon } from "@/components/app/ServiceIcon";
 import { Logo } from "@/components/app/Logo";
 import { Input } from "@/components/ui/input";
 
@@ -15,10 +16,10 @@ export const Route = createFileRoute("/auth")({
   }),
   head: () => ({
     meta: [
-      { title: "Sign in — HaBeeBi" },
-      { name: "description", content: "Sign in or create your HaBeeBi account as a citizen or service provider." },
-      { property: "og:title", content: "Sign in — HaBeeBi" },
-      { property: "og:description", content: "Join HaBeeBi as a citizen or service provider in the UAE." },
+      { title: "Sign in — Habeebi" },
+      { name: "description", content: "Sign in or create your Habeebi account as a citizen or service provider." },
+      { property: "og:title", content: "Sign in — Habeebi" },
+      { property: "og:description", content: "Join Habeebi as a citizen or service provider in the UAE." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -37,6 +38,7 @@ function AuthPage() {
   const [type, setType] = useState<"citizen" | "provider">("citizen");
   const [services, setServices] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
   const toggle = (id: string) => setServices((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
 
   async function submit(e: React.FormEvent) {
@@ -78,7 +80,7 @@ function AuthPage() {
   const chip = (on: boolean) => `flex flex-col items-center gap-1 rounded-xl border p-2 text-xs font-semibold transition-colors ${on ? "border-primary bg-accent text-accent-foreground" : "border-border bg-card"}`;
   return (
     <div className="mx-auto min-h-screen max-w-md px-6 py-8">
-      <div className="flex items-start justify-between gap-2"><Logo big /><LanguagePicker /></div>
+      <Logo big />
       <div className="mt-8 flex rounded-2xl bg-secondary p-1">
         {(["login", "signup"] as const).map((m) => (
           <button key={m} onClick={() => setMode(m)} className={`flex-1 rounded-xl py-2.5 font-semibold transition-colors ${mode === m ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
@@ -107,7 +109,7 @@ function AuthPage() {
                     return (
                       <button key={c.id} type="button" onClick={() => toggle(c.id)} className={`relative ${chip(on)}`}>
                         {on && <Check className="absolute end-1 top-1 h-3.5 w-3.5 text-primary" />}
-                        <span className="text-xl">{c.icon}</span>{c.name}
+                        <ServiceIcon name={c.name} size="sm" />{c.name}
                       </button>
                     );
                   })}
@@ -117,7 +119,7 @@ function AuthPage() {
           </>
         )}
         <Input className="h-12 rounded-xl" placeholder={t("email")} type="email" required value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
-        <Input className="h-12 rounded-xl" placeholder={t("password")} type="password" required minLength={6} autoComplete={mode === "login" ? "current-password" : "new-password"} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} />
+        <div className="relative"><Input className="h-12 rounded-xl pe-12" placeholder={t("password")} type={showPwd ? "text" : "password"} required minLength={6} autoComplete={mode === "login" ? "current-password" : "new-password"} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /><button type="button" onClick={() => setShowPwd((v) => !v)} aria-label="Show password" className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground">{showPwd ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</button></div>
         <button disabled={busy} className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground disabled:opacity-60">
           {busy ? t("wait") : mode === "login" ? t("login") : t("createAccount")}
         </button>

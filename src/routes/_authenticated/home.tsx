@@ -1,3 +1,4 @@
+import { ServiceIcon } from "@/components/app/ServiceIcon";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -8,7 +9,7 @@ import { useT } from "@/lib/i18n";
 import { AppShell } from "@/components/app/AppShell";
 
 export const Route = createFileRoute("/_authenticated/home")({
-  head: () => ({ meta: [{ title: "Home — HaBeeBi" }, { name: "description", content: "HaBeeBi home" }] }),
+  head: () => ({ meta: [{ title: "Home — Habeebi" }, { name: "description", content: "Habeebi home" }] }),
   component: HomePage,
 });
 
@@ -29,7 +30,7 @@ function CitizenHome({ name }: { name: string }) {
       <div className="mt-6 grid grid-cols-3 gap-3">
         {(cats ?? []).filter((c) => c.active).map((c) => (
           <Link key={c.id} to="/request/new" search={{ category: c.id }} className="flex aspect-square flex-col items-center justify-center gap-2 rounded-2xl bg-card p-2 text-center transition-colors hover:bg-accent">
-            <span className="text-3xl">{c.icon}</span>
+            <ServiceIcon name={c.name} />
             <span className="text-xs font-semibold">{c.name}</span>
           </Link>
         ))}

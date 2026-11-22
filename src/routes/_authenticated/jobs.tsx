@@ -6,7 +6,7 @@ import { useT } from "@/lib/i18n";
 import { AppShell } from "@/components/app/AppShell";
 
 export const Route = createFileRoute("/_authenticated/jobs")({
-  head: () => ({ meta: [{ title: "My jobs — HaBeeBi" }, { name: "description", content: "Your requests and jobs" }] }),
+  head: () => ({ meta: [{ title: "My jobs — Habeebi" }, { name: "description", content: "Your requests and jobs" }] }),
   component: Jobs,
 });
 

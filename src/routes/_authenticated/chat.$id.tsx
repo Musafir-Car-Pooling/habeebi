@@ -8,7 +8,7 @@ import { useT } from "@/lib/i18n";
 
 
 export const Route = createFileRoute("/_authenticated/chat/$id")({
-  head: () => ({ meta: [{ title: "Chat — HaBeeBi" }, { name: "description", content: "In-app chat" }] }),
+  head: () => ({ meta: [{ title: "Chat — Habeebi" }, { name: "description", content: "In-app chat" }] }),
   component: Chat,
 });
 

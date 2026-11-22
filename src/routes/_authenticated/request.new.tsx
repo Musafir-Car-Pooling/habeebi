@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/_authenticated/request/new")({
   validateSearch: (s: Record<string, unknown>): { category: string } => ({ category: String(s["category"] ?? "") }),
-  head: () => ({ meta: [{ title: "New request — HaBeeBi" }, { name: "description", content: "Post a service request" }] }),
+  head: () => ({ meta: [{ title: "New request — Habeebi" }, { name: "description", content: "Post a service request" }] }),
   component: NewRequest,
 });
 

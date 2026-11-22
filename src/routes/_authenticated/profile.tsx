@@ -11,7 +11,7 @@ import { ProviderReviews } from "@/components/app/ProviderReviews";
 import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/_authenticated/profile")({
-  head: () => ({ meta: [{ title: "Profile — HaBeeBi" }, { name: "description", content: "Your HaBeeBi profile" }] }),
+  head: () => ({ meta: [{ title: "Profile — Habeebi" }, { name: "description", content: "Your Habeebi profile" }] }),
   component: Profile,
 });
 

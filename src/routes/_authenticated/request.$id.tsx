@@ -13,7 +13,7 @@ import { useT } from "@/lib/i18n";
 import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/_authenticated/request/$id")({
-  head: () => ({ meta: [{ title: "Request — HaBeeBi" }, { name: "description", content: "Service request details and bids" }] }),
+  head: () => ({ meta: [{ title: "Request — Habeebi" }, { name: "description", content: "Service request details and bids" }] }),
   component: RequestPage,
 });
 

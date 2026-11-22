@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Admin — HaBeeBi" }, { name: "description", content: "HaBeeBi admin dashboard" }] }),
+  head: () => ({ meta: [{ title: "Admin — Habeebi" }, { name: "description", content: "Habeebi admin dashboard" }] }),
   component: Admin,
 });
 

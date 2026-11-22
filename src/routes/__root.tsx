@@ -84,10 +84,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "HaBeeBi — An ultimate service provider" },
+      { title: "Habeebi — An ultimate service provider" },
       { name: "description", content: "Book trusted electricians, plumbers, cleaners and more across the UAE. Post your job, get bids in AED." },
-      { name: "author", content: "HaBeeBi" },
-      { property: "og:title", content: "HaBeeBi — An ultimate service provider" },
+      { name: "author", content: "Habeebi" },
+      { property: "og:title", content: "Habeebi — An ultimate service provider" },
       { property: "og:description", content: "Post a job, get bids from UAE service providers, pick the best offer." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

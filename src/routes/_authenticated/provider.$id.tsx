@@ -5,7 +5,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { ProviderReviews } from "@/components/app/ProviderReviews";
 
 export const Route = createFileRoute("/_authenticated/provider/$id")({
-  head: () => ({ meta: [{ title: "Provider — HaBeeBi" }, { name: "description", content: "Provider profile and reviews" }] }),
+  head: () => ({ meta: [{ title: "Provider — Habeebi" }, { name: "description", content: "Provider profile and reviews" }] }),
   component: ProviderPage,
 });
 

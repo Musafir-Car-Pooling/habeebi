@@ -1,16 +1,20 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Gavel, LayoutGrid, MapPin, MessageCircle, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { LanguagePicker, useT, type TKey } from "@/lib/i18n";
 import logo from "@/assets/habeebi-logo.png";
+import ob1 from "@/assets/ob1.png";
+import ob2 from "@/assets/ob2.png";
+import ob3 from "@/assets/ob3.png";
+import ob4 from "@/assets/ob4.png";
+import ob5 from "@/assets/ob5.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "HaBeeBi — Find UAE service providers & get bids in AED" },
+      { title: "Habeebi — Find UAE service providers & get bids in AED" },
       { name: "description", content: "Post your job, share your location and get competing offers from plumbers, electricians, cleaners and more in the UAE." },
-      { property: "og:title", content: "HaBeeBi — An ultimate service provider" },
+      { property: "og:title", content: "Habeebi — An ultimate service provider" },
       { property: "og:description", content: "Post your job and get bids from trusted UAE service providers." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -19,12 +23,12 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const SLIDES: { icon: typeof Gavel; t: TKey; d: TKey }[] = [
-  { icon: LayoutGrid, t: "ob1t", d: "ob1d" },
-  { icon: Wallet, t: "ob2t", d: "ob2d" },
-  { icon: MapPin, t: "ob3t", d: "ob3d" },
-  { icon: Gavel, t: "ob4t", d: "ob4d" },
-  { icon: MessageCircle, t: "ob5t", d: "ob5d" },
+const SLIDES: { img: string; t: TKey; d: TKey }[] = [
+  { img: ob1, t: "ob1t", d: "ob1d" },
+  { img: ob2, t: "ob2t", d: "ob2d" },
+  { img: ob3, t: "ob3t", d: "ob3d" },
+  { img: ob4, t: "ob4t", d: "ob4d" },
+  { img: ob5, t: "ob5t", d: "ob5d" },
 ];
 
 function Index() {
@@ -51,10 +55,10 @@ function Splash() {
       <div className="flex flex-col items-center">
         <div className="relative grid place-items-center">
           <span className="radar-ring absolute h-28 w-28 rounded-full border-2 border-primary" />
-          <img src={logo} alt="HaBeeBi logo" width={128} height={128} className="pop-in relative h-32 w-32" />
+          <img src={logo} alt="Habeebi logo" width={128} height={128} className="pop-in relative h-32 w-32" />
         </div>
         <h1 className="rise-in mt-6 text-4xl font-extrabold tracking-tight" style={{ animationDelay: "0.25s" }}>
-          Ha<span className="text-primary">Bee</span>Bi
+          Habee<span className="text-primary">bi</span>
         </h1>
         <p className="rise-in mt-1 text-muted-foreground" style={{ animationDelay: "0.4s" }}>{t("slogan")}</p>
       </div>
@@ -87,13 +91,8 @@ function Onboarding() {
         {!last && <Link to="/auth" search={{ mode: "signup" }} onClick={finish} className="text-sm font-semibold text-muted-foreground">{t("skip")}</Link>}
       </div>
       <div key={i} className="rise-in flex flex-1 flex-col items-center justify-center text-center">
-        <div className="relative grid h-48 w-48 place-items-center rounded-full bg-accent">
-          <div className="grid h-28 w-28 place-items-center rounded-full bg-primary text-primary-foreground">
-            <slide.icon className="h-12 w-12" strokeWidth={2.2} />
-          </div>
-          <img src={logo} alt="" width={56} height={56} className="absolute -right-1 top-2 h-14 w-14" />
-        </div>
-        <h2 className="mt-10 text-3xl font-extrabold leading-tight">{t(slide.t)}</h2>
+        <div className="relative grid h-72 w-72 place-items-center"><div className="absolute inset-6 rounded-full bg-accent" /><img src={slide.img} alt="" width={640} height={640} className="relative h-72 w-72 object-contain" /></div>
+        <h2 className="mt-6 text-3xl font-extrabold leading-tight">{t(slide.t)}</h2>
         <p className="mt-3 max-w-xs text-muted-foreground">{t(slide.d)}</p>
       </div>
       <div className="mb-6 flex justify-center gap-2">
