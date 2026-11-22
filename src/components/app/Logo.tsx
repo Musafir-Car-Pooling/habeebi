@@ -1,4 +1,4 @@
-import logo from "@/assets/habeebi-logo.png";
+import logo from "@/assets/habeebi-logo.webp";
 import { useT } from "@/lib/i18n";
 
 export function Logo({ big = false }: { big?: boolean }) {

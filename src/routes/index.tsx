@@ -2,12 +2,12 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { LanguagePicker, useT, type TKey } from "@/lib/i18n";
-import logo from "@/assets/habeebi-logo.png";
-import ob1 from "@/assets/ob1.png";
-import ob2 from "@/assets/ob2.png";
-import ob3 from "@/assets/ob3.png";
-import ob4 from "@/assets/ob4.png";
-import ob5 from "@/assets/ob5.png";
+import logo from "@/assets/habeebi-logo.webp";
+import ob1 from "@/assets/ob1.webp";
+import ob2 from "@/assets/ob2.webp";
+import ob3 from "@/assets/ob3.webp";
+import ob4 from "@/assets/ob4.webp";
+import ob5 from "@/assets/ob5.webp";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -91,7 +91,7 @@ function Onboarding() {
         {!last && <Link to="/auth" search={{ mode: "signup" }} onClick={finish} className="text-sm font-semibold text-muted-foreground">{t("skip")}</Link>}
       </div>
       <div key={i} className="rise-in flex flex-1 flex-col items-center justify-center text-center">
-        <div className="relative grid h-72 w-72 place-items-center"><div className="absolute inset-6 rounded-full bg-accent" /><img src={slide.img} alt="" width={640} height={640} className="relative h-72 w-72 object-contain" /></div>
+        <div className="relative grid h-72 w-72 place-items-center"><div className="absolute inset-6 rounded-full bg-accent" /><img src={slide.img} alt="" decoding="async" width={640} height={640} className="relative h-72 w-72 object-contain" /></div>
         <h2 className="mt-6 text-3xl font-extrabold leading-tight">{t(slide.t)}</h2>
         <p className="mt-3 max-w-xs text-muted-foreground">{t(slide.d)}</p>
       </div>
