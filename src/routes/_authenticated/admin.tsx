@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Pencil, Trash2, Plus, Ban, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { aed, categoriesQuery, timeAgo, useMe } from "@/lib/auth";
-import { adminDeleteUser } from "@/server/admin.functions";
+import { adminDeleteUser } from "@/lib/admin.functions";
 import { AppShell } from "@/components/app/AppShell";
 import { Stars } from "@/components/app/Stars";
 import { Input } from "@/components/ui/input";
