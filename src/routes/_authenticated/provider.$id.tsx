@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -5,7 +6,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { ProviderReviews } from "@/components/app/ProviderReviews";
 
 export const Route = createFileRoute("/_authenticated/provider/$id")({
-  head: () => ({ meta: [{ title: "Provider — Habeebi" }, { name: "description", content: "Provider profile and reviews" }] }),
+  head: () => pageMeta("Provider — Habeebi", "Provider profile and reviews"),
   component: ProviderPage,
 });
 

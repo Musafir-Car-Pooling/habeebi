@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/page-meta";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
@@ -12,7 +13,7 @@ import { PageLoading, PageError, PageNotFound } from "@/components/app/PageState
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/jobs")({
-  head: () => ({ meta: [{ title: "My jobs — Habeebi" }, { name: "description", content: "Your UAE service requests and jobs on Habeebi." }] }),
+  head: () => pageMeta("My jobs — Habeebi", "Your UAE service requests and jobs on Habeebi."),
   loader: async ({ context }) => { const me = await context.queryClient.ensureQueryData(meQuery); if (me) await context.queryClient.ensureQueryData(jobsQuery(me)); },
   pendingMs: 150, pendingComponent: PageLoading, errorComponent: PageError, notFoundComponent: PageNotFound,
   component: Jobs,

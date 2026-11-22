@@ -18,7 +18,8 @@ export async function compressPhoto(file: File): Promise<Blob> {
     const crop = Math.min(image.naturalWidth, image.naturalHeight);
     ctx.drawImage(image, (image.naturalWidth - crop) / 2, (image.naturalHeight - crop) / 2, crop, crop, 0, 0, size, size);
     for (const quality of [0.72, 0.55, 0.38]) {
-      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/webp", quality));
+      let blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/webp", quality));
+      if (blob?.type !== "image/webp") blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
       if (blob && blob.size <= PHOTO_MAX_BYTES) return blob;
     }
     throw new Error("photoInvalid");

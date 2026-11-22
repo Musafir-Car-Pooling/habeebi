@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Home, Briefcase, User, LogOut, Shield, Phone } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
@@ -9,6 +9,7 @@ import { categoriesQuery } from "@/lib/auth";
 import { jobsQuery } from "@/lib/app-queries";
 import { HELPLINE } from "@/lib/profile-validation";
 import { Button } from "@/components/ui/button";
+import { LoadingBubbles } from "./LoadingBubbles";
 import { Logo } from "./Logo";
 
 export function AppShell({ children, title }: { children: ReactNode; title?: string }) {
@@ -16,6 +17,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
   const { t } = useT();
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const navigating = useRouterState({ select: (s) => s.isLoading });
   useEffect(() => {
     if (!me) return;
     void qc.prefetchQuery(jobsQuery(me));
@@ -46,11 +48,12 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
         {title ? <h1 className="truncate text-lg font-bold">{title}</h1> : <Logo />}
         <div className="flex shrink-0 items-center gap-1">
           <LanguagePicker className="max-w-28" />
-          <Button onClick={signOut} className="rounded-full p-2 text-muted-foreground hover:bg-secondary" aria-label={t("signOut")}>
+          <Button variant="ghost" size="icon" onClick={signOut} className="rounded-full text-muted-foreground hover:bg-secondary" aria-label={t("signOut")}>
             <LogOut className="h-5 w-5" />
           </Button>
         </div>
       </header>
+      {navigating && <div className="fixed start-1/2 top-20 z-30 -translate-x-1/2 rounded-full bg-background p-2"><LoadingBubbles compact /></div>}
       <main className="px-4 py-4">{children}</main>
       <footer className="px-4 pb-4 text-sm text-muted-foreground"><a href={`tel:${HELPLINE.replace(/ /g, "")}`} className="flex items-center justify-center gap-2 py-3" aria-label={`${t("contactUs")} ${HELPLINE}`}><Phone className="h-4 w-4 text-primary" /><span>{t("helpline")} · <span dir="ltr">{HELPLINE}</span></span></a></footer>
       <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-md border-t border-border bg-card">

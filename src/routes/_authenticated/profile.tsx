@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/page-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
@@ -19,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/profile")({
-  head: () => ({ meta: [{ title: "Profile — Habeebi" }, { name: "description", content: "Your Habeebi profile, photo and services." }] }),
+  head: () => pageMeta("Profile — Habeebi", "Your Habeebi profile, photo and services."),
   loader: async ({ context }) => { await Promise.all([context.queryClient.ensureQueryData(meQuery), context.queryClient.ensureQueryData(categoriesQuery)]); },
   pendingMs: 150, pendingComponent: PageLoading, errorComponent: PageError, notFoundComponent: PageNotFound,
   component: Profile,

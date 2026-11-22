@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/page-meta";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -15,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/_authenticated/request/new")({
   validateSearch: (s: Record<string, unknown>): { category: string } => ({ category: String(s["category"] ?? "") }),
-  head: () => ({ meta: [{ title: "New request — Habeebi" }, { name: "description", content: "Post a service request" }] }),
+  head: () => pageMeta("New request — Habeebi", "Post a service request"),
   component: NewRequest,
 });
 

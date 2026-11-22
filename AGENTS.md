@@ -41,3 +41,4 @@ use the editor.
 - UAE mobile and gender schemas are shared by forms and mirrored by database validation; gender stays in private profile details.
 - Profile photos are center-cropped and compressed in the browser before upload to owner-scoped private storage, then shown through cached signed URLs.
 - Voice recording owns its stream lifecycle and waits for permissions while tracking held input; select a supported MIME type and matching upload extension.
+- Leaf pages use the shared metadata helper to keep unique page titles and social descriptions consistent.

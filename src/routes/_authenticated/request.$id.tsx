@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/page-meta";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -14,7 +15,7 @@ import { LoadingBubbles } from "@/components/app/LoadingBubbles";
 import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/_authenticated/request/$id")({
-  head: () => ({ meta: [{ title: "Request — Habeebi" }, { name: "description", content: "Service request details and bids" }] }),
+  head: () => pageMeta("Request — Habeebi", "Service request details and bids"),
   component: RequestPage,
 });
 
@@ -120,6 +121,7 @@ function Searching({ req }: { req: Req }) {
   }
   return (
     <div>
+      <Summary req={req} />
       <div className="relative mx-auto my-6 grid h-52 w-52 place-items-center">
         {[0, 0.8, 1.6].map((d) => (
           <span key={d} className="radar-ring absolute inset-0 m-auto h-24 w-24 rounded-full border-2 border-primary" style={{ animationDelay: `${d}s` }} />

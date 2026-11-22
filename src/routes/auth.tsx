@@ -36,7 +36,7 @@ function AuthPage() {
   const search = Route.useSearch();
   const { t } = useT();
   const [mode, setMode] = useState<"login" | "signup">(search.mode ?? "login");
-  const { data: cats } = useQuery(categoriesQuery);
+  const { data: cats, isPending: categoriesLoading, error: categoriesError, refetch: reloadCategories } = useQuery(categoriesQuery);
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [f, setF] = useState({ name: "", phone: "", gender: "", email: "", password: "" });
@@ -83,13 +83,13 @@ function AuthPage() {
   }
 
   const active = (cats ?? []).filter((c) => c.active);
-  const chip = (on: boolean) => `flex flex-col items-center gap-1 rounded-xl border p-2 text-xs font-semibold transition-colors ${on ? "border-primary bg-accent text-accent-foreground" : "border-border bg-card"}`;
+  const chip = (on: boolean) => `flex h-auto min-h-20 flex-col items-center gap-1 whitespace-normal rounded-xl border p-2 text-xs font-semibold transition-colors ${on ? "border-primary bg-accent text-accent-foreground" : "border-border bg-card"}`;
   return (
     <div className="mx-auto min-h-screen max-w-md px-6 py-8">
       <Logo big />
       <div className="mt-8 flex rounded-2xl bg-secondary p-1">
         {(["login", "signup"] as const).map((m) => (
-          <Button key={m} onClick={() => setMode(m)} className={`flex-1 rounded-xl py-2.5 font-semibold transition-colors ${mode === m ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
+          <Button variant="ghost" key={m} onClick={() => setMode(m)} className={`h-11 flex-1 rounded-xl py-2.5 font-semibold transition-colors ${mode === m ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
             {m === "login" ? t("login") : t("signup")}
           </Button>
         ))}
@@ -103,18 +103,20 @@ function AuthPage() {
             <div>
               <div className="mb-2 text-sm font-semibold text-muted-foreground">{t("iAm")}</div>
               <div className="grid grid-cols-2 gap-2">
-                <Button type="button" onClick={() => setType("citizen")} className={chip(type === "citizen")}><span className="text-xl">🏠</span>{t("citizen")}</Button>
-                <Button type="button" onClick={() => setType("provider")} className={chip(type === "provider")}><span className="text-xl">🧰</span>{t("provider")}</Button>
+                <Button variant="outline" type="button" onClick={() => setType("citizen")} className={chip(type === "citizen")}><span className="text-xl">🏠</span>{t("citizen")}</Button>
+                <Button variant="outline" type="button" onClick={() => setType("provider")} className={chip(type === "provider")}><span className="text-xl">🧰</span>{t("provider")}</Button>
               </div>
             </div>
             {type === "provider" && (
               <div>
                 <div className="mb-2 text-sm font-semibold text-muted-foreground">{t("pickServices")} ({services.length})</div>
+                {categoriesLoading && <LoadingBubbles />}
+                {categoriesError && <Button variant="secondary" type="button" onClick={() => reloadCategories()}>{t("retry")}</Button>}
                 <div className="grid grid-cols-3 gap-2">
                   {active.map((c) => {
                     const on = services.includes(c.id);
                     return (
-                      <Button key={c.id} type="button" onClick={() => toggle(c.id)} className={`relative ${chip(on)}`}>
+                      <Button variant="outline" key={c.id} type="button" onClick={() => toggle(c.id)} className={`relative ${chip(on)}`}>
                         {on && <Check className="absolute end-1 top-1 h-3.5 w-3.5 text-primary" />}
                         <ServiceIcon name={c.name} size="sm" />{c.name}
                       </Button>
@@ -126,7 +128,7 @@ function AuthPage() {
           </>
         )}
         <Input className="h-12 rounded-xl" placeholder={t("email")} type="email" maxLength={255} required value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
-        <div className="relative"><Input className="h-12 rounded-xl pe-12" placeholder={t("password")} type={showPwd ? "text" : "password"} required minLength={6} maxLength={128} autoComplete={mode === "login" ? "current-password" : "new-password"} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /><Button type="button" onClick={() => setShowPwd((v) => !v)} aria-label={t(showPwd ? "hidePassword" : "showPassword")} className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground">{showPwd ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</Button></div>
+        <div className="relative"><Input className="h-12 rounded-xl pe-12" placeholder={t("password")} type={showPwd ? "text" : "password"} required minLength={6} maxLength={128} autoComplete={mode === "login" ? "current-password" : "new-password"} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /><Button variant="ghost" size="icon" type="button" onClick={() => setShowPwd((v) => !v)} aria-label={t(showPwd ? "hidePassword" : "showPassword")} className="absolute end-2 top-1/2 -translate-y-1/2 text-muted-foreground">{showPwd ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</Button></div>
         <Button type="submit" disabled={busy} className="h-14 w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground disabled:opacity-60">
           {busy ? <LoadingBubbles compact /> : mode === "login" ? t("login") : t("createAccount")}
         </Button>

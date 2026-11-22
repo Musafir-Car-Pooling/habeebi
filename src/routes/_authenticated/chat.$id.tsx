@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/page-meta";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
@@ -8,7 +9,7 @@ import { useT } from "@/lib/i18n";
 
 
 export const Route = createFileRoute("/_authenticated/chat/$id")({
-  head: () => ({ meta: [{ title: "Chat — Habeebi" }, { name: "description", content: "In-app chat" }] }),
+  head: () => pageMeta("Chat — Habeebi", "In-app chat"),
   component: Chat,
 });
 

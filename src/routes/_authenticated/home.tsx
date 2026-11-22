@@ -1,6 +1,7 @@
+import { pageMeta } from "@/lib/page-meta";
 import { ServiceIcon } from "@/components/app/ServiceIcon";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { MapPin, Mic, Radio } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +13,7 @@ import { PageLoading, PageError, PageNotFound } from "@/components/app/PageState
 import { AppShell } from "@/components/app/AppShell";
 
 export const Route = createFileRoute("/_authenticated/home")({
-  head: () => ({ meta: [{ title: "Home — Habeebi" }, { name: "description", content: "Habeebi home" }] }),
+  head: () => pageMeta("Home — Habeebi", "Habeebi home"),
   loader: async ({ context }) => {
     const me = await context.queryClient.ensureQueryData(meQuery);
     await Promise.all([context.queryClient.ensureQueryData(categoriesQuery), ...(me?.account_type === "provider" ? [context.queryClient.ensureQueryData(feedQuery(me.service_ids, me.id))] : [])]);
