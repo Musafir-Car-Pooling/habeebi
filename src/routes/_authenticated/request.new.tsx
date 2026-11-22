@@ -9,6 +9,8 @@ import { AppShell } from "@/components/app/AppShell";
 import { VoiceRecorder } from "@/components/app/VoiceRecorder";
 import { MapView } from "@/components/app/MapView";
 import { useT } from "@/lib/i18n";
+import { audioExtension } from "@/lib/profile-validation";
+import { LoadingBubbles } from "@/components/app/LoadingBubbles";
 import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/_authenticated/request/new")({
@@ -56,7 +58,7 @@ function NewRequest() {
     try {
       let voice_url: string | null = null;
       if (voice) {
-        const path = `${me.id}/${Date.now()}.webm`;
+        const path = `${me.id}/${crypto.randomUUID()}.${audioExtension(voice.type)}`;
         const { error } = await supabase.storage.from("media").upload(path, voice, { contentType: voice.type });
         if (error) throw error;
         voice_url = path;
@@ -99,7 +101,7 @@ function NewRequest() {
           </div>
         </section>
         <button onClick={send} disabled={busy} className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground disabled:opacity-60">
-          {busy ? t("sending") : t("sendRequest")}
+          {busy ? <LoadingBubbles compact /> : t("sendRequest")}
         </button>
       </div>
     </AppShell>

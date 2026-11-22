@@ -11,21 +11,26 @@ export type Me = {
   service_ids: string[];
   blocked: boolean;
   phone: string;
+  gender: string | null;
+  avatar_path: string | null;
   isAdmin: boolean;
 };
 
 export const meQuery = queryOptions({
   queryKey: ["me"],
   queryFn: async (): Promise<Me | null> => {
-    const { data: u } = await supabase.auth.getUser();
-    const user = u.user;
+    // The protected layout validates identity; avoid a second auth network round-trip on each page.
+    const { data: u } = await supabase.auth.getSession();
+    const user = u.session?.user;
     if (!user) return null;
-    const [{ data: p }, { data: priv }, { data: roles }, { data: svc }] = await Promise.all([
+    const [profile, privateDetails, roleRows, serviceRows] = await Promise.all([
       supabase.from("profiles").select("*, service_categories!profiles_category_id_fkey(name)").eq("id", user.id).maybeSingle(),
-      supabase.from("profile_private").select("phone").eq("id", user.id).maybeSingle(),
+      supabase.from("profile_private").select("phone, gender").eq("id", user.id).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", user.id),
       supabase.from("provider_services").select("category_id").eq("provider_id", user.id),
     ]);
+    for (const result of [profile, privateDetails, roleRows, serviceRows]) if (result.error) throw result.error;
+    const p = profile.data, priv = privateDetails.data, roles = roleRows.data, svc = serviceRows.data;
     // Right after sign-up the session can race the first read; retry instead of caching an empty profile.
     if (!p) throw new Error("Profile not ready");
     return {
@@ -38,12 +43,15 @@ export const meQuery = queryOptions({
       service_ids: (svc ?? []).map((x) => x.category_id),
       blocked: p?.blocked ?? false,
       phone: priv?.phone ?? "",
+      gender: priv?.gender ?? null,
+      avatar_path: p.avatar_path,
       isAdmin: (roles ?? []).some((r) => r.role === "admin"),
     };
   },
-  staleTime: 60_000,
+  staleTime: 5 * 60_000,
   retry: 4,
   retryDelay: 400,
+  refetchOnMount: false,
 });
 
 export function useMe() {

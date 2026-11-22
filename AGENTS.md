@@ -36,3 +36,8 @@ use the editor.
 - Voice notes are stored in the private `media` bucket (`<user_id>/...`) and played through signed URLs.
 - UI text goes through `useT()` from `src/lib/i18n.tsx` (one row per key, columns in LANGS order); add every new string there — keeps all languages and RTL working.
 - Provider services are many-to-many in `provider_services`; RLS uses `is_my_service()`. `profiles.category_id` is legacy (first service), so embeds from profiles to service_categories must name the FK explicitly or PostgREST rejects them as ambiguous.
+
+- Shared query options prime authenticated pages and prefetch adjacent requests; reuse cache rather than serially reloading identical identity/category data.
+- UAE mobile and gender schemas are shared by forms and mirrored by database validation; gender stays in private profile details.
+- Profile photos are center-cropped and compressed in the browser before upload to owner-scoped private storage, then shown through cached signed URLs.
+- Voice recording owns its stream lifecycle and waits for permissions while tracking held input; select a supported MIME type and matching upload extension.

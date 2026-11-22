@@ -1,27 +1,35 @@
 import { ServiceIcon } from "@/components/app/ServiceIcon";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { MapPin, Mic, Radio } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { aed, categoriesQuery, distanceKm, timeAgo, useMe } from "@/lib/auth";
+import { aed, categoriesQuery, distanceKm, timeAgo, useMe, meQuery } from "@/lib/auth";
 import { useT } from "@/lib/i18n";
+import { feedQuery } from "@/lib/app-queries";
+import { LoadingBubbles } from "@/components/app/LoadingBubbles";
+import { PageLoading, PageError, PageNotFound } from "@/components/app/PageStates";
 import { AppShell } from "@/components/app/AppShell";
 
 export const Route = createFileRoute("/_authenticated/home")({
   head: () => ({ meta: [{ title: "Home — Habeebi" }, { name: "description", content: "Habeebi home" }] }),
+  loader: async ({ context }) => {
+    const me = await context.queryClient.ensureQueryData(meQuery);
+    await Promise.all([context.queryClient.ensureQueryData(categoriesQuery), ...(me?.account_type === "provider" ? [context.queryClient.ensureQueryData(feedQuery(me.service_ids, me.id))] : [])]);
+  },
+  pendingMs: 150, pendingComponent: PageLoading, errorComponent: PageError, notFoundComponent: PageNotFound,
   component: HomePage,
 });
 
 function HomePage() {
   const { data: me, isLoading } = useMe();
   const { t } = useT();
-  if (isLoading || !me) return <div className="p-8 text-center text-muted-foreground">{t("loading")}</div>;
+  if (isLoading || !me) return <AppShell><LoadingBubbles /></AppShell>;
   return <AppShell>{me.account_type === "provider" ? <ProviderFeed serviceIds={me.service_ids} meId={me.id} /> : <CitizenHome name={me.full_name} />}</AppShell>;
 }
 
 function CitizenHome({ name }: { name: string }) {
-  const { data: cats } = useQuery(categoriesQuery);
+  const { data: cats } = useSuspenseQuery(categoriesQuery);
   const { t } = useT();
   return (
     <div className="rise-in">
@@ -43,32 +51,20 @@ function CitizenHome({ name }: { name: string }) {
 function ProviderFeed({ serviceIds, meId }: { serviceIds: string[]; meId: string }) {
   const qc = useQueryClient();
   const { t } = useT();
-  const { data: cats } = useQuery(categoriesQuery);
+  const { data: cats } = useSuspenseQuery(categoriesQuery);
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null);
   const key = serviceIds.slice().sort().join(",");
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition((p) => setPos({ lat: p.coords.latitude, lng: p.coords.longitude }), () => {}, { maximumAge: 300_000 });
   }, []);
-  const q = useQuery({
-    queryKey: ["feed", key],
-    enabled: serviceIds.length > 0,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("service_requests")
-        .select("id, description, price_aed, address, lat, lng, voice_url, created_at, category_id, profiles!service_requests_citizen_id_fkey(full_name), bids(provider_id)")
-        .eq("status", "open").in("category_id", serviceIds)
-        .order("created_at", { ascending: false }).limit(50);
-      if (error) throw error;
-      return (data ?? []).map((r) => ({ ...r, myBid: (r.bids ?? []).some((b) => b.provider_id === meId) }));
-    },
-  });
+  const q = useSuspenseQuery(feedQuery(serviceIds, meId));
   useEffect(() => {
     if (!key) return;
     const ch = supabase.channel(`feed-${Math.random().toString(36).slice(2)}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "service_requests", filter: `category_id=in.(${key})` }, () => qc.invalidateQueries({ queryKey: ["feed", key] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "service_requests", filter: `category_id=in.(${key})` }, () => qc.invalidateQueries({ queryKey: ["feed", meId, key] }))
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [qc, key]);
+  }, [qc, key, meId]);
 
   if (serviceIds.length === 0) return <p className="text-muted-foreground">{t("noServices")}</p>;
   const catMap = new Map((cats ?? []).map((c) => [c.id, c]));
@@ -80,7 +76,7 @@ function ProviderFeed({ serviceIds, meId }: { serviceIds: string[]; meId: string
         {serviceIds.map((id) => <span key={id} className="rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold">{catMap.get(id)?.icon} {catMap.get(id)?.name}</span>)}
       </div>
       <div className="mt-5 space-y-3">
-        {q.isLoading && <p className="text-muted-foreground">{t("loading")}</p>}
+        
         {q.data?.length === 0 && <div className="rounded-2xl bg-card p-6 text-center text-muted-foreground">{t("noRequests")}</div>}
         {q.data?.map((r) => (
           <Link key={r.id} to="/request/$id" params={{ id: r.id }} className="block rounded-2xl bg-card p-4">

@@ -128,16 +128,19 @@ export type Database = {
       profile_private: {
         Row: {
           email: string
+          gender: string | null
           id: string
           phone: string
         }
         Insert: {
           email?: string
+          gender?: string | null
           id: string
           phone?: string
         }
         Update: {
           email?: string
+          gender?: string | null
           id?: string
           phone?: string
         }
@@ -154,6 +157,7 @@ export type Database = {
       profiles: {
         Row: {
           account_type: string
+          avatar_path: string | null
           blocked: boolean
           category_id: string | null
           created_at: string
@@ -162,6 +166,7 @@ export type Database = {
         }
         Insert: {
           account_type?: string
+          avatar_path?: string | null
           blocked?: boolean
           category_id?: string | null
           created_at?: string
@@ -170,6 +175,7 @@ export type Database = {
         }
         Update: {
           account_type?: string
+          avatar_path?: string | null
           blocked?: boolean
           category_id?: string | null
           created_at?: string

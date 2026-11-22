@@ -1,10 +1,14 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Home, Briefcase, User, LogOut, Shield } from "lucide-react";
-import type { ReactNode } from "react";
+import { Home, Briefcase, User, LogOut, Shield, Phone } from "lucide-react";
+import { useEffect, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMe } from "@/lib/auth";
 import { LanguagePicker, useT } from "@/lib/i18n";
+import { categoriesQuery } from "@/lib/auth";
+import { jobsQuery } from "@/lib/app-queries";
+import { HELPLINE } from "@/lib/profile-validation";
+import { Button } from "@/components/ui/button";
 import { Logo } from "./Logo";
 
 export function AppShell({ children, title }: { children: ReactNode; title?: string }) {
@@ -12,6 +16,11 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
   const { t } = useT();
   const qc = useQueryClient();
   const navigate = useNavigate();
+  useEffect(() => {
+    if (!me) return;
+    void qc.prefetchQuery(jobsQuery(me));
+    void qc.prefetchQuery(categoriesQuery);
+  }, [me, qc]);
   async function signOut() {
     await qc.cancelQueries();
     qc.clear();
@@ -24,7 +33,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
         <div>
           <h1 className="text-xl font-bold">{t("blocked")}</h1>
           <p className="mt-2 text-muted-foreground">{t("blockedD")}</p>
-          <button onClick={signOut} className="mt-4 rounded-full bg-primary px-5 py-2 font-semibold text-primary-foreground">{t("signOut")}</button>
+          <Button onClick={signOut} className="mt-4 rounded-full bg-primary px-5 py-2 font-semibold text-primary-foreground">{t("signOut")}</Button>
         </div>
       </div>
     );
@@ -37,12 +46,13 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
         {title ? <h1 className="truncate text-lg font-bold">{title}</h1> : <Logo />}
         <div className="flex shrink-0 items-center gap-1">
           <LanguagePicker className="max-w-28" />
-          <button onClick={signOut} className="rounded-full p-2 text-muted-foreground hover:bg-secondary" aria-label={t("signOut")}>
+          <Button onClick={signOut} className="rounded-full p-2 text-muted-foreground hover:bg-secondary" aria-label={t("signOut")}>
             <LogOut className="h-5 w-5" />
-          </button>
+          </Button>
         </div>
       </header>
       <main className="px-4 py-4">{children}</main>
+      <footer className="px-4 pb-4 text-sm text-muted-foreground"><a href={`tel:${HELPLINE.replace(/ /g, "")}`} className="flex items-center justify-center gap-2 py-3" aria-label={`${t("contactUs")} ${HELPLINE}`}><Phone className="h-4 w-4 text-primary" /><span>{t("helpline")} · <span dir="ltr">{HELPLINE}</span></span></a></footer>
       <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-md border-t border-border bg-card">
         <Link to="/home" className={nav} activeProps={active}><Home className="h-5 w-5" />{t("home")}</Link>
         <Link to="/jobs" className={nav} activeProps={active}><Briefcase className="h-5 w-5" />{me?.account_type === "provider" ? t("myJobs") : t("myRequests")}</Link>

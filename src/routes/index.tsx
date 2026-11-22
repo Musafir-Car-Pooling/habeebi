@@ -11,6 +11,7 @@ import ob5 from "@/assets/ob5.webp";
 
 export const Route = createFileRoute("/")({
   head: () => ({
+    links: [{ rel: "preload", as: "image", href: ob1, fetchpriority: "high" }],
     meta: [
       { title: "Habeebi — Find UAE service providers & get bids in AED" },
       { name: "description", content: "Post your job, share your location and get competing offers from plumbers, electricians, cleaners and more in the UAE." },
@@ -35,15 +36,16 @@ function Index() {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<"splash" | "onboarding">("splash");
   useEffect(() => {
-    const started = Date.now();
+    let active = true;
+    // Warm all small illustrations during the splash instead of loading after each swipe.
+    for (const slide of SLIDES) { const image = new Image(); image.src = slide.img; void image.decode().catch(() => {}); }
     supabase.auth.getSession().then(({ data }) => {
-      const wait = Math.max(0, 1400 - (Date.now() - started));
-      setTimeout(() => {
-        if (data.session) navigate({ to: "/home", replace: true });
-        else if (localStorage.getItem("hb-onboarded")) navigate({ to: "/auth", search: { mode: "login" }, replace: true });
-        else setPhase("onboarding");
-      }, wait);
+      if (!active) return;
+      if (data.session) navigate({ to: "/home", replace: true });
+      else if (localStorage.getItem("hb-onboarded")) navigate({ to: "/auth", search: { mode: "login" }, replace: true });
+      else setPhase("onboarding");
     });
+    return () => { active = false; };
   }, [navigate]);
   return phase === "splash" ? <Splash /> : <Onboarding />;
 }
@@ -71,7 +73,8 @@ function Onboarding() {
   const [i, setI] = useState(0);
   const touchX = useRef<number | null>(null);
   const last = i === SLIDES.length - 1;
-  const slide = SLIDES[i]!;
+  const slide = SLIDES[i];
+  if (!slide) return null;
   const finish = () => localStorage.setItem("hb-onboarded", "1");
   const go = (n: number) => setI(Math.min(SLIDES.length - 1, Math.max(0, n)));
   return (
@@ -90,8 +93,8 @@ function Onboarding() {
         <LanguagePicker />
         {!last && <Link to="/auth" search={{ mode: "signup" }} onClick={finish} className="text-sm font-semibold text-muted-foreground">{t("skip")}</Link>}
       </div>
-      <div key={i} className="rise-in flex flex-1 flex-col items-center justify-center text-center">
-        <div className="relative grid h-72 w-72 place-items-center"><div className="absolute inset-6 rounded-full bg-accent" /><img src={slide.img} alt="" decoding="async" width={640} height={640} className="relative h-72 w-72 object-contain" /></div>
+      <div className="flex flex-1 flex-col items-center justify-center text-center">
+        <div className="relative grid h-72 w-72 place-items-center"><div className="absolute inset-6 rounded-full bg-accent" />{SLIDES.map((item, n) => <img key={item.img} src={item.img} alt="" decoding="async" loading="eager" width={640} height={640} aria-hidden={n !== i} className={`absolute h-72 w-72 object-contain ${n === i ? "visible" : "invisible"}`} />)}</div>
         <h2 className="mt-6 text-3xl font-extrabold leading-tight">{t(slide.t)}</h2>
         <p className="mt-3 max-w-xs text-muted-foreground">{t(slide.d)}</p>
       </div>

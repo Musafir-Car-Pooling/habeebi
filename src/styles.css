@@ -131,6 +131,22 @@
 @utility radar-ring { animation: radar 2.4s cubic-bezier(0.2, 0.6, 0.3, 1) infinite; }
 @utility rise-in { animation: rise 0.45s ease-out both; }
 
+.loading-bubbles { position: relative; display: inline-block; width: 40px; height: 40px; }
+.loading-bubbles > span { position: absolute; inset: 0; transform: rotate(var(--angle)); }
+.loading-bubbles > span::before { content: ""; display: block; width: 7px; height: 7px; margin: 1px auto; border-radius: 50%; background: var(--primary); animation: bubble-pulse 1s ease-in-out infinite; animation-delay: var(--delay); }
+.loading-bubbles > span:nth-child(1) { --angle: 0deg; --delay: -0.875s; }
+.loading-bubbles > span:nth-child(2) { --angle: 45deg; --delay: -0.75s; }
+.loading-bubbles > span:nth-child(3) { --angle: 90deg; --delay: -0.625s; }
+.loading-bubbles > span:nth-child(4) { --angle: 135deg; --delay: -0.5s; }
+.loading-bubbles > span:nth-child(5) { --angle: 180deg; --delay: -0.375s; }
+.loading-bubbles > span:nth-child(6) { --angle: 225deg; --delay: -0.25s; }
+.loading-bubbles > span:nth-child(7) { --angle: 270deg; --delay: -0.125s; }
+.loading-bubbles > span:nth-child(8) { --angle: 315deg; --delay: 0s; }
+@keyframes bubble-pulse { 0%, 100% { opacity: 0.25; transform: scale(0.7); } 50% { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .loading-bubbles > span::before, .radar-ring, .rise-in, .pop-in { animation: none; }
+}
+
 @layer base {
   * {
     border-color: var(--color-border);

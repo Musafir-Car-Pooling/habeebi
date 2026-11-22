@@ -29,6 +29,13 @@
       "when": 1795359616800,
       "tag": "0003_tighten_profiles_and_media_read",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795360824767,
+      "tag": "0004_profile_details_launch_controls",
+      "breakpoints": true
     }
   ]
 }

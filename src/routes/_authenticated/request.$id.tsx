@@ -10,6 +10,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { MapView } from "@/components/app/MapView";
 import { Stars } from "@/components/app/Stars";
 import { useT } from "@/lib/i18n";
+import { LoadingBubbles } from "@/components/app/LoadingBubbles";
 import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/_authenticated/request/$id")({
@@ -45,7 +46,7 @@ function RequestPage() {
     return () => { supabase.removeChannel(ch); };
   }, [id, qc]);
 
-  if (isLoading || !me) return <AppShell><p className="text-muted-foreground">{t("loading")}</p></AppShell>;
+  if (isLoading || !me) return <AppShell><LoadingBubbles /></AppShell>;
   if (!req) return <AppShell><p className="text-muted-foreground">{t("unavailable")}</p></AppShell>;
   const isCitizen = req.citizen_id === me.id;
   const title = `${req.service_categories?.icon ?? ""} ${req.service_categories?.name ?? "Request"}`;
@@ -115,7 +116,7 @@ function Searching({ req }: { req: Req }) {
   });
   async function cancel() {
     const { error } = await supabase.from("service_requests").update({ status: "cancelled" }).eq("id", req.id);
-    if (error) toast.error(error.message); else qc.invalidateQueries({ queryKey: ["request", req.id] });
+    if (error) toast.error(error.message); else { qc.invalidateQueries({ queryKey: ["request", req.id] }); qc.invalidateQueries({ queryKey: ["jobs"] }); }
   }
   return (
     <div>
