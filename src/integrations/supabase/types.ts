@@ -186,6 +186,36 @@ export type Database = {
           },
         ]
       }
+      provider_services: {
+        Row: {
+          category_id: string
+          provider_id: string
+        }
+        Insert: {
+          category_id: string
+          provider_id: string
+        }
+        Update: {
+          category_id?: string
+          provider_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_services_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "provider_services_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           citizen_id: string
@@ -374,6 +404,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_my_service: { Args: { _cat: string }; Returns: boolean }
       my_category: { Args: never; Returns: string }
     }
     Enums: {

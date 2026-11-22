@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Admin — Serviyo" }, { name: "description", content: "Serviyo admin dashboard" }] }),
+  head: () => ({ meta: [{ title: "Admin — HaBeeBi" }, { name: "description", content: "HaBeeBi admin dashboard" }] }),
   component: Admin,
 });
 
@@ -142,12 +142,15 @@ function Users() {
   const q = useQuery({
     queryKey: ["admin", "users"],
     queryFn: async () => {
-      const [{ data: p }, { data: priv }] = await Promise.all([
-        supabase.from("profiles").select("*, service_categories(name)").order("created_at", { ascending: false }),
+      const [{ data: p }, { data: priv }, { data: svc }] = await Promise.all([
+        supabase.from("profiles").select("*").order("created_at", { ascending: false }),
         supabase.from("profile_private").select("*"),
+        supabase.from("provider_services").select("provider_id, category_id"),
       ]);
       const map = new Map((priv ?? []).map((x) => [x.id, x]));
-      return (p ?? []).map((u) => ({ ...u, phone: map.get(u.id)?.phone ?? "", email: map.get(u.id)?.email ?? "" }));
+      const sv = new Map<string, string[]>();
+      for (const r of svc ?? []) sv.set(r.provider_id, [...(sv.get(r.provider_id) ?? []), r.category_id]);
+      return (p ?? []).map((u) => ({ ...u, services: sv.get(u.id) ?? [], phone: map.get(u.id)?.phone ?? "", email: map.get(u.id)?.email ?? "" }));
     },
   });
   const refresh = () => qc.invalidateQueries({ queryKey: ["admin", "users"] });
@@ -160,14 +163,19 @@ function Users() {
     const { error } = await supabase.from("profiles").update({ blocked }).eq("id", id);
     if (error) toast.error(error.message); else refresh();
   }
-  async function setCat(id: string, v: string) {
-    const { error } = await supabase.from("profiles").update(v === "citizen" ? { account_type: "citizen", category_id: null } : { account_type: "provider", category_id: v }).eq("id", id);
-    if (error) toast.error(error.message); else refresh();
+  async function toggleService(id: string, current: string[], cat: string) {
+    const on = current.includes(cat);
+    const next = on ? current.filter((x) => x !== cat) : [...current, cat];
+    const r1 = on
+      ? await supabase.from("provider_services").delete().eq("provider_id", id).eq("category_id", cat)
+      : await supabase.from("provider_services").insert({ provider_id: id, category_id: cat });
+    const r2 = await supabase.from("profiles").update({ account_type: next.length ? "provider" : "citizen", category_id: next[0] ?? null }).eq("id", id);
+    if (r1.error || r2.error) toast.error((r1.error ?? r2.error)!.message); else refresh();
   }
   const list = (q.data ?? []).filter((u) => {
     const s = search.toLowerCase();
     const okS = !s || u.full_name.toLowerCase().includes(s) || u.email.toLowerCase().includes(s) || u.phone.includes(s);
-    const okF = filter === "all" || (filter === "citizen" ? u.account_type === "citizen" : u.category_id === filter);
+    const okF = filter === "all" || (filter === "citizen" ? u.account_type === "citizen" : u.services.includes(filter));
     return okS && okF;
   });
   return (
@@ -183,7 +191,7 @@ function Users() {
         <div key={u.id} className="rounded-2xl bg-card p-3">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <div className="font-bold">{u.full_name || "—"} {u.blocked && <span className="ml-1 rounded-full bg-destructive px-2 py-0.5 text-xs text-destructive-foreground">Blocked</span>}</div>
+              <div className="font-bold">{u.full_name || "—"} {u.blocked && <span className="ms-1 rounded-full bg-destructive px-2 py-0.5 text-xs text-destructive-foreground">Blocked</span>}</div>
               <div className="truncate text-xs text-muted-foreground">{u.email} · {u.phone}</div>
             </div>
             <div className="flex shrink-0">
@@ -193,10 +201,17 @@ function Users() {
               <button onClick={() => confirm("Is user ko hamesha ke liye delete karein?") && remove.mutate(u.id)} className="rounded-full p-2 text-destructive hover:bg-secondary" aria-label="Delete"><Trash2 className="h-4 w-4" /></button>
             </div>
           </div>
-          <select value={u.account_type === "citizen" ? "citizen" : u.category_id ?? "citizen"} onChange={(e) => setCat(u.id, e.target.value)} className="mt-2 h-9 w-full rounded-lg border border-input bg-secondary px-2 text-sm">
-            <option value="citizen">Citizen</option>
-            {cats?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            <span className="rounded-full bg-muted px-2 py-1 text-xs">{u.services.length ? "Provider" : "Citizen"}</span>
+            {cats?.map((c) => {
+              const on = u.services.includes(c.id);
+              return (
+                <button key={c.id} onClick={() => toggleService(u.id, u.services, c.id)} className={`rounded-full border px-2 py-1 text-xs font-semibold ${on ? "border-primary bg-accent text-accent-foreground" : "border-border text-muted-foreground"}`}>
+                  {c.icon} {c.name}
+                </button>
+              );
+            })}
+          </div>
         </div>
       ))}
     </div>

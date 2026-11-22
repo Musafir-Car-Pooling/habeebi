@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Mic, Trash2, Square } from "lucide-react";
 import { toast } from "sonner";
+import { useT } from "@/lib/i18n";
 
 export function VoiceRecorder({ value, onChange }: { value: Blob | null; onChange: (b: Blob | null) => void }) {
   const [recording, setRecording] = useState(false);
@@ -9,6 +10,7 @@ export function VoiceRecorder({ value, onChange }: { value: Blob | null; onChang
   const chunks = useRef<Blob[]>([]);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const [url, setUrl] = useState<string | null>(null);
+  const { t } = useT();
 
   useEffect(() => {
     if (!value) { setUrl(null); return; }
@@ -33,7 +35,7 @@ export function VoiceRecorder({ value, onChange }: { value: Blob | null; onChang
       setRecording(true);
       timer.current = setInterval(() => setSecs((s) => s + 1), 1000);
     } catch {
-      toast.error("Microphone ki permission nahi mili");
+      toast.error(t("micDenied"));
     }
   }
   function stop() {
@@ -45,7 +47,7 @@ export function VoiceRecorder({ value, onChange }: { value: Blob | null; onChang
   if (value && url) {
     return (
       <div className="flex items-center gap-2 rounded-2xl bg-secondary p-2">
-        <audio src={url} controls className="h-10 flex-1" />
+        <audio src={url} controls className="h-10 flex-1" preload="none" />
         <button type="button" onClick={() => onChange(null)} className="rounded-full p-2 text-destructive hover:bg-muted" aria-label="Delete voice note">
           <Trash2 className="h-5 w-5" />
         </button>
@@ -59,10 +61,10 @@ export function VoiceRecorder({ value, onChange }: { value: Blob | null; onChang
         {recording ? (
           <span className="flex items-center gap-2 text-destructive">
             <span className="h-2 w-2 animate-pulse rounded-full bg-destructive" />
-            Recording… 0:{String(secs).padStart(2, "0")} — chhorein to save
+            0:{String(secs).padStart(2, "0")} · {t("recording")}
           </span>
         ) : (
-          "Hold to record voice note"
+          t("holdRecord")
         )}
       </span>
       <button

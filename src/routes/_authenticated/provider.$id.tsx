@@ -5,7 +5,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { ProviderReviews } from "@/components/app/ProviderReviews";
 
 export const Route = createFileRoute("/_authenticated/provider/$id")({
-  head: () => ({ meta: [{ title: "Provider — Serviyo" }, { name: "description", content: "Provider profile and reviews" }] }),
+  head: () => ({ meta: [{ title: "Provider — HaBeeBi" }, { name: "description", content: "Provider profile and reviews" }] }),
   component: ProviderPage,
 });
 
@@ -13,7 +13,7 @@ function ProviderPage() {
   const { id } = Route.useParams();
   const p = useQuery({
     queryKey: ["provider", id],
-    queryFn: async () => (await supabase.from("profiles").select("full_name, created_at, service_categories(name, icon)").eq("id", id).maybeSingle()).data,
+    queryFn: async () => (await supabase.from("profiles").select("full_name, created_at, provider_services(service_categories(name, icon))").eq("id", id).maybeSingle()).data,
   });
   const jobs = useQuery({
     queryKey: ["providerJobs", id],
@@ -25,7 +25,7 @@ function ProviderPage() {
         <div className="grid h-16 w-16 place-items-center rounded-full bg-primary text-2xl font-extrabold text-primary-foreground">{(p.data?.full_name ?? "?").charAt(0)}</div>
         <div>
           <div className="text-xl font-extrabold">{p.data?.full_name}</div>
-          <div className="text-sm text-muted-foreground">{p.data?.service_categories?.icon} {p.data?.service_categories?.name} · {jobs.data} jobs reviewed</div>
+          <div className="text-sm text-muted-foreground">{(p.data?.provider_services ?? []).map((x) => `${x.service_categories?.icon ?? ""} ${x.service_categories?.name ?? ""}`).join(", ")} · {jobs.data} jobs reviewed</div>
         </div>
       </div>
       <ProviderReviews providerId={id} />

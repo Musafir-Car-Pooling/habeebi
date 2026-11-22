@@ -1,15 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { ArrowRight, Gavel, MapPin, ShieldCheck } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Gavel, LayoutGrid, MapPin, MessageCircle, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Logo } from "@/components/app/Logo";
+import { LanguagePicker, useT, type TKey } from "@/lib/i18n";
+import logo from "@/assets/habeebi-logo.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Serviyo — Find UAE service providers & get bids in AED" },
+      { title: "HaBeeBi — Find UAE service providers & get bids in AED" },
       { name: "description", content: "Post your job, share your location and get competing offers from plumbers, electricians, cleaners and more in the UAE." },
-      { property: "og:title", content: "Serviyo — An ultimate service provider" },
+      { property: "og:title", content: "HaBeeBi — An ultimate service provider" },
       { property: "og:description", content: "Post your job and get bids from trusted UAE service providers." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -18,41 +19,96 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+const SLIDES: { icon: typeof Gavel; t: TKey; d: TKey }[] = [
+  { icon: LayoutGrid, t: "ob1t", d: "ob1d" },
+  { icon: Wallet, t: "ob2t", d: "ob2d" },
+  { icon: MapPin, t: "ob3t", d: "ob3d" },
+  { icon: Gavel, t: "ob4t", d: "ob4d" },
+  { icon: MessageCircle, t: "ob5t", d: "ob5d" },
+];
+
 function Index() {
   const navigate = useNavigate();
+  const [phase, setPhase] = useState<"splash" | "onboarding">("splash");
   useEffect(() => {
+    const started = Date.now();
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/home", replace: true });
+      const wait = Math.max(0, 1400 - (Date.now() - started));
+      setTimeout(() => {
+        if (data.session) navigate({ to: "/home", replace: true });
+        else if (localStorage.getItem("hb-onboarded")) navigate({ to: "/auth", search: { mode: "login" }, replace: true });
+        else setPhase("onboarding");
+      }, wait);
     });
   }, [navigate]);
-  const items = [
-    { icon: MapPin, t: "Location share karein", d: "GPS se exact jagah bhejein" },
-    { icon: Gavel, t: "Bids hasil karein", d: "Providers apni offers AED mein dete hain" },
-    { icon: ShieldCheck, t: "Ratings dekh kar chunein", d: "Reviews ke sath behtareen choose karein" },
-  ];
+  return phase === "splash" ? <Splash /> : <Onboarding />;
+}
+
+function Splash() {
+  const { t } = useT();
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col px-6 py-10">
-      <Logo big />
-      <h1 className="mt-12 text-4xl font-extrabold leading-tight tracking-tight">
-        Your price.<br /><span className="text-primary">Your pro.</span>
-      </h1>
-      <p className="mt-3 text-muted-foreground">Electrician, plumber, cleaner, maid, cook — UAE mein har service, apni offer ke sath.</p>
-      <div className="mt-8 space-y-3">
-        {items.map((i) => (
-          <div key={i.t} className="flex items-center gap-4 rounded-2xl bg-card p-4">
-            <div className="grid h-11 w-11 place-items-center rounded-xl bg-accent text-accent-foreground"><i.icon className="h-5 w-5" /></div>
-            <div><div className="font-semibold">{i.t}</div><div className="text-sm text-muted-foreground">{i.d}</div></div>
+    <div className="grid min-h-screen place-items-center bg-background">
+      <div className="flex flex-col items-center">
+        <div className="relative grid place-items-center">
+          <span className="radar-ring absolute h-28 w-28 rounded-full border-2 border-primary" />
+          <img src={logo} alt="HaBeeBi logo" width={128} height={128} className="pop-in relative h-32 w-32" />
+        </div>
+        <h1 className="rise-in mt-6 text-4xl font-extrabold tracking-tight" style={{ animationDelay: "0.25s" }}>
+          Ha<span className="text-primary">Bee</span>Bi
+        </h1>
+        <p className="rise-in mt-1 text-muted-foreground" style={{ animationDelay: "0.4s" }}>{t("slogan")}</p>
+      </div>
+    </div>
+  );
+}
+
+function Onboarding() {
+  const { t } = useT();
+  const [i, setI] = useState(0);
+  const touchX = useRef<number | null>(null);
+  const last = i === SLIDES.length - 1;
+  const slide = SLIDES[i]!;
+  const finish = () => localStorage.setItem("hb-onboarded", "1");
+  const go = (n: number) => setI(Math.min(SLIDES.length - 1, Math.max(0, n)));
+  return (
+    <div
+      className="mx-auto flex min-h-screen max-w-md flex-col px-6 py-6"
+      onTouchStart={(e) => { touchX.current = e.touches[0]?.clientX ?? null; }}
+      onTouchEnd={(e) => {
+        const s = touchX.current; const x = e.changedTouches[0]?.clientX;
+        if (s == null || x == null) return;
+        const dx = x - s;
+        const rtl = document.documentElement.dir === "rtl";
+        if (Math.abs(dx) > 50) go(i + ((dx < 0) !== rtl ? 1 : -1));
+      }}
+    >
+      <div className="flex items-center justify-between">
+        <LanguagePicker />
+        {!last && <Link to="/auth" search={{ mode: "signup" }} onClick={finish} className="text-sm font-semibold text-muted-foreground">{t("skip")}</Link>}
+      </div>
+      <div key={i} className="rise-in flex flex-1 flex-col items-center justify-center text-center">
+        <div className="relative grid h-48 w-48 place-items-center rounded-full bg-accent">
+          <div className="grid h-28 w-28 place-items-center rounded-full bg-primary text-primary-foreground">
+            <slide.icon className="h-12 w-12" strokeWidth={2.2} />
           </div>
+          <img src={logo} alt="" width={56} height={56} className="absolute -right-1 top-2 h-14 w-14" />
+        </div>
+        <h2 className="mt-10 text-3xl font-extrabold leading-tight">{t(slide.t)}</h2>
+        <p className="mt-3 max-w-xs text-muted-foreground">{t(slide.d)}</p>
+      </div>
+      <div className="mb-6 flex justify-center gap-2">
+        {SLIDES.map((_, n) => (
+          <button key={n} onClick={() => go(n)} aria-label={`Slide ${n + 1}`} className={`h-2 rounded-full transition-all ${n === i ? "w-8 bg-primary" : "w-2 bg-muted"}`} />
         ))}
       </div>
-      <div className="mt-auto space-y-3 pt-10">
-        <Link to="/auth" search={{ mode: "signup" }} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground">
-          Get started <ArrowRight className="h-5 w-5" />
-        </Link>
-        <Link to="/auth" search={{ mode: "login" }} className="block w-full rounded-2xl bg-secondary py-4 text-center font-semibold">
-          I already have an account
-        </Link>
-      </div>
+      {last ? (
+        <div className="space-y-3">
+          <Link to="/auth" search={{ mode: "signup" }} onClick={finish} className="block w-full rounded-2xl bg-primary py-4 text-center text-lg font-bold text-primary-foreground">{t("getStarted")}</Link>
+          <Link to="/auth" search={{ mode: "login" }} onClick={finish} className="block w-full rounded-2xl bg-secondary py-4 text-center font-semibold">{t("haveAccount")}</Link>
+        </div>
+      ) : (
+        <button onClick={() => go(i + 1)} className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground">{t("next")}</button>
+      )}
     </div>
   );
 }

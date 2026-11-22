@@ -9,10 +9,11 @@ import { fetchRatings } from "@/lib/ratings";
 import { AppShell } from "@/components/app/AppShell";
 import { MapView } from "@/components/app/MapView";
 import { Stars } from "@/components/app/Stars";
+import { useT } from "@/lib/i18n";
 import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/_authenticated/request/$id")({
-  head: () => ({ meta: [{ title: "Request — Serviyo" }, { name: "description", content: "Service request details and bids" }] }),
+  head: () => ({ meta: [{ title: "Request — HaBeeBi" }, { name: "description", content: "Service request details and bids" }] }),
   component: RequestPage,
 });
 
@@ -35,6 +36,7 @@ function RequestPage() {
   const { data: me } = useMe();
   const { data: req, isLoading } = useRequest(id);
   const qc = useQueryClient();
+  const { t } = useT();
   useEffect(() => {
     const ch = supabase.channel(`req-${id}-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "bids", filter: `request_id=eq.${id}` }, () => qc.invalidateQueries({ queryKey: ["bids", id] }))
@@ -43,8 +45,8 @@ function RequestPage() {
     return () => { supabase.removeChannel(ch); };
   }, [id, qc]);
 
-  if (isLoading || !me) return <AppShell><p className="text-muted-foreground">Loading…</p></AppShell>;
-  if (!req) return <AppShell><p className="text-muted-foreground">Ye request available nahi hai.</p></AppShell>;
+  if (isLoading || !me) return <AppShell><p className="text-muted-foreground">{t("loading")}</p></AppShell>;
+  if (!req) return <AppShell><p className="text-muted-foreground">{t("unavailable")}</p></AppShell>;
   const isCitizen = req.citizen_id === me.id;
   const title = `${req.service_categories?.icon ?? ""} ${req.service_categories?.name ?? "Request"}`;
   return (
@@ -58,7 +60,7 @@ function RequestPage() {
           {(req.status === "accepted" || req.status === "completed") && (req.provider_id === me.id || isCitizen) && (
             <Matched req={req} isCitizen={isCitizen} />
           )}
-          {req.status === "cancelled" && <p className="rounded-2xl bg-card p-4 text-center text-muted-foreground">Ye request cancel ho chuki hai.</p>}
+          {req.status === "cancelled" && <p className="rounded-2xl bg-card p-4 text-center text-muted-foreground">{t("cancelled")}</p>}
         </div>
       )}
     </AppShell>
@@ -78,7 +80,7 @@ function Summary({ req }: { req: Req }) {
         </div>
         <div className="shrink-0 rounded-xl bg-primary px-3 py-1.5 font-extrabold text-primary-foreground">{aed(req.price_aed)}</div>
       </div>
-      {voice.data && <audio src={voice.data} controls className="h-10 w-full" />}
+      {voice.data && <audio src={voice.data} controls preload="none" className="h-10 w-full" />}
       {req.address && <div className="flex items-start gap-2 text-sm text-muted-foreground"><MapPin className="mt-0.5 h-4 w-4 shrink-0" />{req.address}</div>}
       {req.lat != null && req.lng != null && <MapView lat={req.lat} lng={req.lng} height={140} />}
     </div>
@@ -100,10 +102,11 @@ function useBids(id: string) {
 function Searching({ req }: { req: Req }) {
   const qc = useQueryClient();
   const { data: bids } = useBids(req.id);
+  const { t } = useT();
   const pending = (bids ?? []).filter((b) => b.status === "pending");
   const accept = useMutation({
     mutationFn: async (bidId: string) => { const { error } = await supabase.rpc("accept_bid", { _bid_id: bidId }); if (error) throw error; },
-    onSuccess: () => { toast.success("Offer accept ho gayi!"); qc.invalidateQueries({ queryKey: ["request", req.id] }); },
+    onSuccess: () => { toast.success(t("offerAccepted")); qc.invalidateQueries({ queryKey: ["request", req.id] }); },
     onError: (e) => toast.error(e.message),
   });
   const decline = useMutation({
@@ -122,8 +125,8 @@ function Searching({ req }: { req: Req }) {
         ))}
         <div className="relative grid h-20 w-20 place-items-center rounded-full bg-primary text-4xl">{req.service_categories?.icon}</div>
       </div>
-      <h2 className="text-center text-xl font-extrabold">Searching your service provider…</h2>
-      <p className="mt-1 text-center text-sm text-muted-foreground">Your offer: <span className="font-bold text-primary">{aed(req.price_aed)}</span> · Offers yahan aati rahengi</p>
+      <h2 className="text-center text-xl font-extrabold">{t("searching")}</h2>
+      <p className="mt-1 text-center text-sm text-muted-foreground">{t("yourOffer")}: <span className="font-bold text-primary">{aed(req.price_aed)}</span> · {t("offersAppear")}</p>
       <div className="mt-6 space-y-3">
         {pending.map((b) => (
           <div key={b.id} className="rise-in rounded-2xl bg-card p-4">
@@ -132,7 +135,7 @@ function Searching({ req }: { req: Req }) {
               <div className="min-w-0 flex-1">
                 <Link to="/provider/$id" params={{ id: b.provider_id }} className="font-bold hover:underline">{b.profiles?.full_name}</Link>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Stars value={b.rating.avg} size={12} /> {b.rating.count ? `${b.rating.avg.toFixed(1)} (${b.rating.count})` : "New"}
+                  <Stars value={b.rating.avg} size={12} /> {b.rating.count ? `${b.rating.avg.toFixed(1)} (${b.rating.count})` : t("newPro")}
                 </div>
               </div>
               <div className="text-right">
@@ -142,13 +145,13 @@ function Searching({ req }: { req: Req }) {
             </div>
             {b.message && <p className="mt-2 text-sm text-muted-foreground">“{b.message}”</p>}
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <button onClick={() => decline.mutate(b.id)} className="flex items-center justify-center gap-1 rounded-xl bg-secondary py-2.5 font-semibold"><X className="h-4 w-4" />Decline</button>
-              <button onClick={() => accept.mutate(b.id)} disabled={accept.isPending} className="flex items-center justify-center gap-1 rounded-xl bg-primary py-2.5 font-bold text-primary-foreground"><Check className="h-4 w-4" />Accept</button>
+              <button onClick={() => decline.mutate(b.id)} className="flex items-center justify-center gap-1 rounded-xl bg-secondary py-2.5 font-semibold"><X className="h-4 w-4" />{t("decline")}</button>
+              <button onClick={() => accept.mutate(b.id)} disabled={accept.isPending} className="flex items-center justify-center gap-1 rounded-xl bg-primary py-2.5 font-bold text-primary-foreground"><Check className="h-4 w-4" />{t("accept")}</button>
             </div>
           </div>
         ))}
       </div>
-      <button onClick={cancel} className="mt-6 w-full rounded-2xl bg-secondary py-3 font-semibold text-destructive">Cancel request</button>
+      <button onClick={cancel} className="mt-6 w-full rounded-2xl bg-secondary py-3 font-semibold text-destructive">{t("cancelRequest")}</button>
     </div>
   );
 }
@@ -156,6 +159,7 @@ function Searching({ req }: { req: Req }) {
 function BidForm({ req, meId }: { req: Req; meId: string }) {
   const qc = useQueryClient();
   const { data: bids } = useBids(req.id);
+  const { t } = useT();
   const mine = bids?.find((b) => b.provider_id === meId);
   const [amount, setAmount] = useState(String(req.price_aed));
   const [eta, setEta] = useState("30");
@@ -165,16 +169,16 @@ function BidForm({ req, meId }: { req: Req; meId: string }) {
       const { error } = await supabase.from("bids").insert({ request_id: req.id, provider_id: meId, amount_aed: value, eta_minutes: Number(eta) || 30, message: msg.trim() });
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Offer bhej di gayi"); qc.invalidateQueries({ queryKey: ["bids", req.id] }); },
+    onSuccess: () => { toast.success(t("offerSent")); qc.invalidateQueries({ queryKey: ["bids", req.id] }); },
     onError: (e) => toast.error(e.message),
   });
   if (mine) {
     return (
       <div className="rounded-2xl bg-accent p-4 text-accent-foreground">
-        <div className="font-bold">Aap ki offer: {aed(mine.amount_aed)}</div>
-        <div className="text-sm">{mine.status === "pending" ? "Citizen ke jawab ka intezar…" : mine.status === "rejected" ? "Ye offer decline ho gayi" : "Accepted"}</div>
+        <div className="font-bold">{t("yourOffer")}: {aed(mine.amount_aed)}</div>
+        <div className="text-sm">{mine.status === "pending" ? t("waitingReply") : mine.status === "rejected" ? t("declined") : t("st_accepted")}</div>
         {mine.status === "pending" && (
-          <button onClick={async () => { await supabase.from("bids").delete().eq("id", mine.id); qc.invalidateQueries({ queryKey: ["bids", req.id] }); }} className="mt-3 text-sm underline">Withdraw offer</button>
+          <button onClick={async () => { await supabase.from("bids").delete().eq("id", mine.id); qc.invalidateQueries({ queryKey: ["bids", req.id] }); }} className="mt-3 text-sm underline">{t("withdraw")}</button>
         )}
       </div>
     );
@@ -182,18 +186,18 @@ function BidForm({ req, meId }: { req: Req; meId: string }) {
   return (
     <div className="space-y-3 rounded-2xl bg-card p-4">
       <button onClick={() => send.mutate(Number(req.price_aed))} disabled={send.isPending} className="w-full rounded-2xl bg-primary py-3.5 font-bold text-primary-foreground">
-        Accept for {aed(req.price_aed)}
+        {t("acceptFor")} {aed(req.price_aed)}
       </button>
-      <div className="text-center text-xs text-muted-foreground">ya apni offer dein</div>
+      <div className="text-center text-xs text-muted-foreground">{t("orOffer")}</div>
       <div className="grid grid-cols-2 gap-2">
-        <label className="rounded-xl bg-secondary px-3 py-2"><span className="text-xs text-muted-foreground">Your price (AED)</span>
+        <label className="rounded-xl bg-secondary px-3 py-2"><span className="text-xs text-muted-foreground">{t("yourPrice")}</span>
           <input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ""))} className="w-full bg-transparent text-xl font-extrabold outline-none" /></label>
-        <label className="rounded-xl bg-secondary px-3 py-2"><span className="text-xs text-muted-foreground">Arrival (min)</span>
+        <label className="rounded-xl bg-secondary px-3 py-2"><span className="text-xs text-muted-foreground">{t("arrival")}</span>
           <input inputMode="numeric" value={eta} onChange={(e) => setEta(e.target.value.replace(/\D/g, ""))} className="w-full bg-transparent text-xl font-extrabold outline-none" /></label>
       </div>
-      <Textarea value={msg} onChange={(e) => setMsg(e.target.value)} placeholder="Message (optional)" className="rounded-xl bg-secondary" maxLength={300} />
-      <button onClick={() => { const v = Number(amount); if (!v) { toast.error("Price likhein"); return; } send.mutate(v); }} disabled={send.isPending} className="w-full rounded-2xl bg-secondary py-3.5 font-bold">
-        Send offer {amount ? aed(amount) : ""}
+      <Textarea value={msg} onChange={(e) => setMsg(e.target.value)} placeholder={t("messageOpt")} className="rounded-xl bg-secondary" maxLength={300} />
+      <button onClick={() => { const v = Number(amount); if (!v) { toast.error(t("needPrice")); return; } send.mutate(v); }} disabled={send.isPending} className="w-full rounded-2xl bg-secondary py-3.5 font-bold">
+        {t("sendOffer")} {amount ? aed(amount) : ""}
       </button>
     </div>
   );
@@ -214,6 +218,7 @@ function Matched({ req, isCitizen }: { req: Req; isCitizen: boolean }) {
     queryKey: ["review", req.id],
     queryFn: async () => (await supabase.from("reviews").select("*").eq("request_id", req.id).maybeSingle()).data,
   });
+  const { t } = useT();
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const otherName = isCitizen ? req.provider?.full_name : req.citizen?.full_name;
@@ -221,36 +226,36 @@ function Matched({ req, isCitizen }: { req: Req; isCitizen: boolean }) {
 
   async function complete() {
     const { error } = await supabase.rpc("complete_request", { _request_id: req.id });
-    if (error) toast.error(error.message); else { toast.success("Job complete!"); qc.invalidateQueries({ queryKey: ["request", req.id] }); }
+    if (error) toast.error(error.message); else { toast.success(t("jobDone")); qc.invalidateQueries({ queryKey: ["request", req.id] }); }
   }
   async function submitReview() {
     const { error } = await supabase.from("reviews").insert({ request_id: req.id, provider_id: req.provider_id!, citizen_id: req.citizen_id, rating, comment: comment.trim() });
-    if (error) toast.error(error.message); else { toast.success("Shukriya! Review save ho gaya"); qc.invalidateQueries({ queryKey: ["review", req.id] }); }
+    if (error) toast.error(error.message); else { toast.success(t("thanksReview")); qc.invalidateQueries({ queryKey: ["review", req.id] }); }
   }
 
   return (
     <div className="space-y-3">
       <div className="rounded-2xl bg-primary p-4 text-primary-foreground">
-        <div className="text-sm font-semibold opacity-80">{req.status === "completed" ? "Completed" : "Matched!"} · {bid.data ? aed(bid.data.amount_aed) : ""}</div>
+        <div className="text-sm font-semibold opacity-80">{req.status === "completed" ? t("completed") : t("matched")} · {bid.data ? aed(bid.data.amount_aed) : ""}</div>
         <div className="mt-1 text-2xl font-extrabold">{otherName}</div>
         {otherPhone && <div className="mt-1 text-lg font-bold">{otherPhone}</div>}
         <div className="mt-4 grid grid-cols-2 gap-2">
-          <a href={otherPhone ? `tel:${otherPhone}` : undefined} className="flex items-center justify-center gap-2 rounded-xl bg-primary-foreground py-3 font-bold text-primary"><Phone className="h-4 w-4" />Call</a>
-          <Link to="/chat/$id" params={{ id: req.id }} className="flex items-center justify-center gap-2 rounded-xl bg-primary-foreground py-3 font-bold text-primary"><MessageCircle className="h-4 w-4" />Chat</Link>
+          <a href={otherPhone ? `tel:${otherPhone}` : undefined} className="flex items-center justify-center gap-2 rounded-xl bg-primary-foreground py-3 font-bold text-primary"><Phone className="h-4 w-4" />{t("call")}</a>
+          <Link to="/chat/$id" params={{ id: req.id }} className="flex items-center justify-center gap-2 rounded-xl bg-primary-foreground py-3 font-bold text-primary"><MessageCircle className="h-4 w-4" />{t("chat")}</Link>
         </div>
       </div>
       {req.status === "accepted" && (
-        <button onClick={complete} className="w-full rounded-2xl bg-secondary py-3.5 font-bold">Mark job as completed</button>
+        <button onClick={complete} className="w-full rounded-2xl bg-secondary py-3.5 font-bold">{t("markDone")}</button>
       )}
       {req.status === "completed" && isCitizen && !review.isLoading && (
         review.data ? (
-          <div className="rounded-2xl bg-card p-4"><div className="text-sm text-muted-foreground">Your review</div><Stars value={review.data.rating} size={18} /><p className="mt-1">{review.data.comment}</p></div>
+          <div className="rounded-2xl bg-card p-4"><div className="text-sm text-muted-foreground">{t("yourReview")}</div><Stars value={review.data.rating} size={18} /><p className="mt-1">{review.data.comment}</p></div>
         ) : (
           <div className="space-y-3 rounded-2xl bg-card p-4">
-            <div className="font-bold">Rate {otherName}</div>
+            <div className="font-bold">{t("rate")} {otherName}</div>
             <Stars value={rating} size={30} onChange={setRating} />
-            <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Apna tajurba likhein…" className="rounded-xl bg-secondary" maxLength={500} />
-            <button onClick={submitReview} className="w-full rounded-2xl bg-primary py-3 font-bold text-primary-foreground">Submit review</button>
+            <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t("reviewPh")} className="rounded-xl bg-secondary" maxLength={500} />
+            <button onClick={submitReview} className="w-full rounded-2xl bg-primary py-3 font-bold text-primary-foreground">{t("submitReview")}</button>
           </div>
         )
       )}

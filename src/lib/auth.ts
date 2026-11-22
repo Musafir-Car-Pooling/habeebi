@@ -8,6 +8,7 @@ export type Me = {
   account_type: "citizen" | "provider";
   category_id: string | null;
   category_name: string | null;
+  service_ids: string[];
   blocked: boolean;
   phone: string;
   isAdmin: boolean;
@@ -19,11 +20,14 @@ export const meQuery = queryOptions({
     const { data: u } = await supabase.auth.getUser();
     const user = u.user;
     if (!user) return null;
-    const [{ data: p }, { data: priv }, { data: roles }] = await Promise.all([
-      supabase.from("profiles").select("*, service_categories(name)").eq("id", user.id).maybeSingle(),
+    const [{ data: p }, { data: priv }, { data: roles }, { data: svc }] = await Promise.all([
+      supabase.from("profiles").select("*, service_categories!profiles_category_id_fkey(name)").eq("id", user.id).maybeSingle(),
       supabase.from("profile_private").select("phone").eq("id", user.id).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", user.id),
+      supabase.from("provider_services").select("category_id").eq("provider_id", user.id),
     ]);
+    // Right after sign-up the session can race the first read; retry instead of caching an empty profile.
+    if (!p) throw new Error("Profile not ready");
     return {
       id: user.id,
       email: user.email ?? "",
@@ -31,12 +35,15 @@ export const meQuery = queryOptions({
       account_type: (p?.account_type as Me["account_type"]) ?? "citizen",
       category_id: p?.category_id ?? null,
       category_name: (p as { service_categories?: { name: string } | null } | null)?.service_categories?.name ?? null,
+      service_ids: (svc ?? []).map((x) => x.category_id),
       blocked: p?.blocked ?? false,
       phone: priv?.phone ?? "",
       isAdmin: (roles ?? []).some((r) => r.role === "admin"),
     };
   },
   staleTime: 60_000,
+  retry: 4,
+  retryDelay: 400,
 });
 
 export function useMe() {
@@ -50,6 +57,7 @@ export const categoriesQuery = queryOptions({
     if (error) throw error;
     return data;
   },
+  staleTime: 10 * 60_000,
 });
 
 export const aed = (n: number | string) =>

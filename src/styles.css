@@ -122,6 +122,12 @@
   from { transform: translateY(16px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
+@keyframes pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@utility pop-in { animation: pop 0.7s cubic-bezier(0.2, 0.8, 0.3, 1.2) both; }
 @utility radar-ring { animation: radar 2.4s cubic-bezier(0.2, 0.6, 0.3, 1) infinite; }
 @utility rise-in { animation: rise 0.45s ease-out both; }
 

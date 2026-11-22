@@ -4,9 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMe } from "@/lib/auth";
+import { useT } from "@/lib/i18n";
+
 
 export const Route = createFileRoute("/_authenticated/chat/$id")({
-  head: () => ({ meta: [{ title: "Chat — Serviyo" }, { name: "description", content: "In-app chat" }] }),
+  head: () => ({ meta: [{ title: "Chat — HaBeeBi" }, { name: "description", content: "In-app chat" }] }),
   component: Chat,
 });
 
@@ -14,6 +16,7 @@ function Chat() {
   const { id } = Route.useParams();
   const { data: me } = useMe();
   const qc = useQueryClient();
+  const { t } = useT();
   const [text, setText] = useState("");
   const bottom = useRef<HTMLDivElement>(null);
   const req = useQuery({
@@ -44,7 +47,7 @@ function Chat() {
   return (
     <div className="mx-auto flex h-screen max-w-md flex-col">
       <header className="flex items-center gap-3 border-b border-border px-4 py-3">
-        <Link to="/request/$id" params={{ id }} className="rounded-full p-1 hover:bg-secondary" aria-label="Back"><ArrowLeft className="h-5 w-5" /></Link>
+        <Link to="/request/$id" params={{ id }} className="rounded-full p-1 hover:bg-secondary" aria-label="Back"><ArrowLeft className="h-5 w-5 rtl:rotate-180" /></Link>
         <div className="grid h-9 w-9 place-items-center rounded-full bg-accent font-bold text-accent-foreground">{(other ?? "?").charAt(0)}</div>
         <div className="font-bold">{other}</div>
       </header>
@@ -53,7 +56,7 @@ function Chat() {
           const mine = m.sender_id === me?.id;
           return (
             <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[78%] rounded-2xl px-3.5 py-2 ${mine ? "rounded-br-sm bg-primary text-primary-foreground" : "rounded-bl-sm bg-card"}`}>
+              <div className={`max-w-[78%] rounded-2xl px-3.5 py-2 ${mine ? "rounded-ee-sm bg-primary text-primary-foreground" : "rounded-es-sm bg-card"}`}>
                 <p className="whitespace-pre-wrap break-words">{m.body}</p>
                 <div className="mt-0.5 text-right text-[10px] opacity-60">{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
               </div>
@@ -63,7 +66,7 @@ function Chat() {
         <div ref={bottom} />
       </div>
       <form onSubmit={send} className="flex gap-2 border-t border-border p-3">
-        <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Message…" maxLength={2000} className="h-12 flex-1 rounded-full bg-card px-4 outline-none" />
+        <input value={text} onChange={(e) => setText(e.target.value)} placeholder={t("messagePh")} maxLength={2000} className="h-12 flex-1 rounded-full bg-card px-4 outline-none" />
         <button className="grid h-12 w-12 place-items-center rounded-full bg-primary text-primary-foreground" aria-label="Send"><Send className="h-5 w-5" /></button>
       </form>
     </div>

@@ -34,3 +34,5 @@ use the editor.
 - Phone numbers live in `profile_private` and are exposed to the other party only via the `get_contacts` RPC after a bid is accepted — keeps contacts hidden during bidding.
 - Bid acceptance and job completion go through `accept_bid` / `complete_request` security-definer RPCs so status changes stay consistent.
 - Voice notes are stored in the private `media` bucket (`<user_id>/...`) and played through signed URLs.
+- UI text goes through `useT()` from `src/lib/i18n.tsx` (one row per key, columns in LANGS order); add every new string there — keeps all languages and RTL working.
+- Provider services are many-to-many in `provider_services`; RLS uses `is_my_service()`. `profiles.category_id` is legacy (first service), so embeds from profiles to service_categories must name the FK explicitly or PostgREST rejects them as ambiguous.
