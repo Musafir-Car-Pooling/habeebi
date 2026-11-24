@@ -42,3 +42,5 @@ use the editor.
 - Profile photos are center-cropped and compressed in the browser before upload to owner-scoped private storage, then shown through cached signed URLs.
 - Voice recording owns its stream lifecycle and waits for permissions while tracking held input; select a supported MIME type and matching upload extension.
 - Leaf pages use the shared metadata helper to keep unique page titles and social descriptions consistent.
+- Netlify deploy uses netlify.toml with NITRO_PRESET=netlify; Lovable hosting ignores it and keeps its own preset.
+- PWA is manifest-only (no service worker) to keep previews safe.
