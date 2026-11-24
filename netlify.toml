@@ -2,6 +2,18 @@
   command = "bun install && bun run build"
   publish = "dist"
 
+# .env is not committed, so Netlify needs the public backend values here.
+# These are publishable (browser-safe) keys, not secrets.
 [build.environment]
   NITRO_PRESET = "netlify"
   NODE_VERSION = "22"
+  VITE_SUPABASE_URL = "https://ktkuufbldjxfxsvdyorc.supabase.co"
+  VITE_SUPABASE_PROJECT_ID = "ktkuufbldjxfxsvdyorc"
+  VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gV_AQ82w3AEGHEVEQeggJA_pL3eCEdS"
+  SUPABASE_URL = "https://ktkuufbldjxfxsvdyorc.supabase.co"
+  SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gV_AQ82w3AEGHEVEQeggJA_pL3eCEdS"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json"
