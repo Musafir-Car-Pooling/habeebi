@@ -7,10 +7,10 @@
 [build.environment]
   NITRO_PRESET = "netlify"
   NODE_VERSION = "22"
-  VITE_SUPABASE_URL = "https://ktkuufbldjxfxsvdyorc.supabase.co"
+  VITE_SUPABASE_URL = "https://c--54740812-377e-4683-9c7e-c14cd2e25482-prod.lovable.cloud"
   VITE_SUPABASE_PROJECT_ID = "ktkuufbldjxfxsvdyorc"
   VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gV_AQ82w3AEGHEVEQeggJA_pL3eCEdS"
-  SUPABASE_URL = "https://ktkuufbldjxfxsvdyorc.supabase.co"
+  SUPABASE_URL = "https://c--54740812-377e-4683-9c7e-c14cd2e25482-prod.lovable.cloud"
   SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gV_AQ82w3AEGHEVEQeggJA_pL3eCEdS"
 
 [[headers]]
